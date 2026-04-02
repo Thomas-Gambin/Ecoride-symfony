@@ -1,0 +1,10 @@
+.git
+.gitignore
+README.md
+var
+vendor
+.phpunit.result.cache
+.php-cs-fixer.cache
+.idea
+.vscode
+*.md

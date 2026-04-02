@@ -1,0 +1,48 @@
+services:
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ecoride}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecoride}
+      POSTGRES_USER: ${POSTGRES_USER:-ecoride}
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-d', '${POSTGRES_DB:-ecoride}', '-U', '${POSTGRES_USER:-ecoride}']
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/var/www/html
+      - symfony_vendor:/var/www/html/vendor
+      - symfony_var:/var/www/html/var
+    environment:
+      APP_ENV: dev
+      APP_SECRET: ${APP_SECRET:-dev_secret}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ecoride}:${POSTGRES_PASSWORD:-ecoride}@database:5432/${POSTGRES_DB:-ecoride}?serverVersion=16&charset=utf8
+      DEFAULT_URI: http://localhost:8000
+    depends_on:
+      database:
+        condition: service_healthy
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - '8080:8080'
+    environment:
+      ADMINER_DEFAULT_SERVER: database
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  database_data:
+  symfony_vendor:
+  symfony_var:
