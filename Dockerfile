@@ -8,7 +8,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev \
     libzip-dev \
     libpq-dev \
+    libssl-dev \
+    pkg-config \
     && docker-php-ext-install -j$(nproc) intl opcache pdo_pgsql zip \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
