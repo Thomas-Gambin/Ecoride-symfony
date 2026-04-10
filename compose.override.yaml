@@ -2,3 +2,9 @@ services:
   database:
     ports:
       - '5432:5432'
+
+###> doctrine/mongodb-odm-bundle ###
+  mongodb:
+    ports:
+      - "27017"
+###< doctrine/mongodb-odm-bundle ###
