@@ -21,16 +21,20 @@ services:
       - '8000:8000'
     volumes:
       - .:/var/www/html
-      - symfony_vendor:/var/www/html/vendor
+      # vendor/ et var/ suivent le dossier du projet (bind mount) pour que l’IDE voie vendor/
       - symfony_var:/var/www/html/var
     environment:
       APP_ENV: dev
       APP_SECRET: ${APP_SECRET:-dev_secret}
       DATABASE_URL: postgresql://${POSTGRES_USER:-ecoride}:${POSTGRES_PASSWORD:-ecoride}@database:5432/${POSTGRES_DB:-ecoride}?serverVersion=16&charset=utf8
       DEFAULT_URI: http://localhost:8000
+      MONGODB_URI: mongodb://mongodb:27017
+      MONGODB_DB: ${MONGODB_DB:-ecoride}
     depends_on:
       database:
         condition: service_healthy
+      mongodb:
+        condition: service_started
 
   adminer:
     image: adminer:latest
@@ -59,7 +63,6 @@ services:
 
 volumes:
   database_data:
-  symfony_vendor:
   symfony_var:
 
 ###> doctrine/mongodb-odm-bundle ###
