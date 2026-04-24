@@ -1,10 +1,16 @@
 services:
   database:
     ports:
-      - '5432:5432'
+      - name: postgres
+        target: 5432
+        published: ${POSTGRES_PORT:-5432}
+        protocol: tcp
 
 ###> doctrine/mongodb-odm-bundle ###
   mongodb:
     ports:
-      - "27017"
+      - name: mongo
+        target: 27017
+        published: ${MONGODB_PORT:-27017}
+        protocol: tcp
 ###< doctrine/mongodb-odm-bundle ###

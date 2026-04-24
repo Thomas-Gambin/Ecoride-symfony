@@ -18,18 +18,34 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '8000:8000'
+      - name: http
+        target: 8000
+        published: ${HTTP_PORT:-8000}
+        protocol: tcp
     volumes:
       - .:/var/www/html
-      # vendor/ et var/ suivent le dossier du projet (bind mount) pour que l’IDE voie vendor/
       - symfony_var:/var/www/html/var
+      - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint-app.sh:ro
     environment:
-      APP_ENV: dev
+      SERVER_NAME: ${SERVER_NAME:-localhost}
+      HTTP_PORT: ${HTTP_PORT:-8000}
+      DEFAULT_URI: http://${SERVER_NAME:-localhost}:${HTTP_PORT:-8000}
+      APP_ENV: ${APP_ENV:-dev}
       APP_SECRET: ${APP_SECRET:-dev_secret}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-ecoride}:${POSTGRES_PASSWORD:-ecoride}@database:5432/${POSTGRES_DB:-ecoride}?serverVersion=16&charset=utf8
-      DEFAULT_URI: http://localhost:8000
-      MONGODB_URI: mongodb://mongodb:27017
+      SYMFONY_VERSION: ${SYMFONY_VERSION:-}
+      STABILITY: ${STABILITY:-stable}
+      POSTGRES_USER: ${POSTGRES_USER:-ecoride}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecoride}
+      POSTGRES_DB: ${POSTGRES_DB:-ecoride}
+      POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+      POSTGRES_CHARSET: ${POSTGRES_CHARSET:-utf8}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-ecoride}:${POSTGRES_PASSWORD:-ecoride}@database:5432/${POSTGRES_DB:-ecoride}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
+      MONGODB_URI: ${MONGODB_URI_DOCKER:-mongodb://mongodb:27017}
       MONGODB_DB: ${MONGODB_DB:-ecoride}
+      MAILERSEND_API_KEY: ${MAILERSEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_TO: ${MAIL_TO:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       database:
         condition: service_healthy
@@ -39,7 +55,10 @@ services:
   adminer:
     image: adminer:latest
     ports:
-      - '8080:8080'
+      - name: adminer
+        target: 8080
+        published: ${ADMINER_PORT:-8080}
+        protocol: tcp
     environment:
       ADMINER_DEFAULT_SERVER: database
     depends_on:
@@ -48,17 +67,13 @@ services:
 
 ###> doctrine/mongodb-odm-bundle ###
   mongodb:
-    # In production, you may want to use a managed database service
     image: mongodb/mongodb-atlas-local:latest
     environment:
-      - MONGODB_INITDB_DATABASE=${MONGODB_DB:-app}
-      # You should definitely set a root username and password in production
+      - MONGODB_INITDB_DATABASE=${MONGODB_DB:-ecoride}
       - MONGODB_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-}
       - MONGODB_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:-}
     volumes:
       - mongodb_data:/data/db:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/mongodb/data:/data/db:rw
 ###< doctrine/mongodb-odm-bundle ###
 
 volumes:

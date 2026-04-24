@@ -30,4 +30,4 @@ RUN chmod +x /usr/local/bin/docker-entrypoint-app.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint-app.sh"]
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/docker-entrypoint-app.sh"]
