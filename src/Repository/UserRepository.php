@@ -33,6 +33,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    public function findOneByEmailVerificationTokenHash(string $hash): ?User
+    {
+        return $this->findOneBy(['emailVerificationToken' => $hash]);
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */

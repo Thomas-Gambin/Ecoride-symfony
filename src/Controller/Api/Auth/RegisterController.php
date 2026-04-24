@@ -7,7 +7,8 @@ namespace App\Controller\Api\Auth;
 use App\Dto\Auth\RegisterPayload;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Service\Mail\WelcomeEmailService;
+use App\Service\Auth\EmailVerificationTokenGenerator;
+use App\Service\Mail\ConfirmRegistrationEmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +24,8 @@ final class RegisterController
         private readonly EntityManagerInterface $entityManager,
         private readonly UserRepository $userRepository,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly WelcomeEmailService $welcomeEmailService,
+        private readonly EmailVerificationTokenGenerator $verificationTokenGenerator,
+        private readonly ConfirmRegistrationEmailService $confirmRegistrationEmailService,
         private readonly LoggerInterface $logger,
     ) {}
 
@@ -54,14 +56,24 @@ final class RegisterController
         $user->setCredits(20);
         $user->setRoles(['ROLE_USER']);
         $user->setPassword($this->passwordHasher->hashPassword($user, $payload->password));
+        $user->setIsVerified(false);
+
+        $plainToken = $this->verificationTokenGenerator->createPlainToken();
+        $user->setEmailVerificationToken($this->verificationTokenGenerator->hashToken($plainToken));
+        $user->setEmailVerificationTokenExpiresAt($this->verificationTokenGenerator->expiresAt());
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
         try {
-            $this->welcomeEmailService->send(toEmail: $user->getEmail(), pseudo: $pseudo, credits: $user->getCredits());
+            $this->confirmRegistrationEmailService->send(
+                toEmail: $user->getEmail(),
+                pseudo: $pseudo,
+                plainToken: $plainToken,
+                credits: $user->getCredits(),
+            );
         } catch (\Throwable $e) {
-            $this->logger->error('Welcome email failed after registration.', [
+            $this->logger->error('Confirmation email failed after registration.', [
                 'exception' => $e::class,
                 'message' => $e->getMessage(),
                 'userId' => $user->getId(),
@@ -70,13 +82,8 @@ final class RegisterController
         }
 
         return new JsonResponse([
-            'message' => 'Compte créé avec succès.',
-            'user' => [
-                'id' => $user->getId(),
-                'pseudo' => $user->getUsername(),
-                'email' => $user->getEmail(),
-                'credits' => $user->getCredits(),
-            ],
+            'message' => 'Votre compte a été créé. Un email de confirmation vous a été envoyé.',
+            'requiresEmailVerification' => true,
         ], Response::HTTP_CREATED);
     }
 

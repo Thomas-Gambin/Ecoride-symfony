@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Confirmez votre compte EcoRide</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f7f8;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      Confirmez votre adresse email pour activer votre compte EcoRide.
+    </div>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f6f7f8;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="width:600px;max-width:92vw;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(2,6,23,0.08);">
+            <tr>
+              <td style="padding:22px 22px 0 22px;">
+                <div style="display:inline-block;padding:10px 14px;border-radius:999px;background:rgba(16,185,129,0.10);color:#065f46;font-weight:800;letter-spacing:-0.02em;">
+                  EcoRide
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 22px 0 22px;">
+                <h1 style="margin:0;font-size:22px;line-height:1.25;color:#0f172a;">
+                  Bienvenue {{ pseudo }} !
+                </h1>
+                <p style="margin:12px 0 0 0;font-size:15px;line-height:1.55;color:#334155;">
+                  Merci de t’être inscrit sur EcoRide. Pour activer ton compte et profiter de tes
+                  <strong style="color:#047857;">{{ credits }} crédits</strong> de bienvenue, confirme ton adresse email en cliquant sur le bouton ci-dessous.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:22px 22px 8px 22px;" align="center">
+                <a href="{{ confirmUrl }}" style="display:inline-block;padding:14px 28px;border-radius:12px;background:#059669;color:#ffffff;font-weight:800;font-size:15px;text-decoration:none;box-shadow:0 4px 14px rgba(5,150,105,0.35);">
+                  Confirmer mon adresse email
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:8px 22px 18px 22px;">
+                <p style="margin:0;font-size:13px;line-height:1.55;color:#64748b;">
+                  Ce lien est valable <strong>24 heures</strong>. Après expiration, tu pourras demander un nouvel email depuis la page d’inscription ou de connexion.
+                </p>
+                <p style="margin:14px 0 0 0;font-size:12px;line-height:1.5;color:#64748b;">
+                  Si le bouton ne fonctionne pas, copie-colle cette adresse dans ton navigateur&nbsp;:
+                </p>
+                <p style="margin:6px 0 0 0;font-size:11px;line-height:1.45;color:#0f172a;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">
+                  {{ confirmUrl }}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 22px 22px 22px;">
+                <p style="margin:0;font-size:13px;line-height:1.5;color:#64748b;">
+                  Pense à vérifier tes courriers indésirables (spam) si tu ne vois pas l’email.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:14px 0 0 0;font-size:12px;color:#94a3b8;">
+            Cet email a été envoyé automatiquement, merci de ne pas répondre.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
