@@ -26,6 +26,9 @@ security:
                 success_handler: App\Security\ApiAuthenticationSuccessHandler
                 failure_handler: App\Security\ApiAuthenticationFailureHandler
 
+            logout:
+                path: /api/logout
+
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -35,8 +38,16 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/api/resend-verification-email, roles: PUBLIC_ACCESS }
+        - { path: ^/api/me, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/logout, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/employee, roles: ROLE_EMPLOYEE }
+        - { path: ^/api/user, roles: ROLE_USER }
+        - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:
     security:

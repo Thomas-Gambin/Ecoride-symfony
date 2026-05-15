@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\Dto\Auth\UserProfileDto;
+use App\Entity\User;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,8 +16,15 @@ final class ApiAuthenticationSuccessHandler implements AuthenticationSuccessHand
 {
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
     {
-        return new JsonResponse([
+        $user = $token->getUser();
+        $payload = [
             'message' => 'Authentification réussie.',
-        ], Response::HTTP_OK);
+        ];
+
+        if ($user instanceof User) {
+            $payload['user'] = UserProfileDto::fromUser($user)->toArray();
+        }
+
+        return new JsonResponse($payload, Response::HTTP_OK);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\Security\Exception\AccountSuspendedException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +17,13 @@ final class ApiAuthenticationFailureHandler implements AuthenticationFailureHand
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
         for ($e = $exception; $e !== null; $e = $e->getPrevious()) {
+            if ($e instanceof AccountSuspendedException) {
+                return new JsonResponse([
+                    'code' => 'ACCOUNT_SUSPENDED',
+                    'message' => $e->getMessage(),
+                ], Response::HTTP_FORBIDDEN);
+            }
+
             if ($e instanceof CustomUserMessageAccountStatusException) {
                 return new JsonResponse([
                     'code' => 'EMAIL_NOT_VERIFIED',
