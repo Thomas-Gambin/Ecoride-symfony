@@ -17,17 +17,6 @@ final class AuthenticationTest extends WebTestCase
 {
     private const PASSWORD = 'SecurePass1!';
 
-    public function testMeWithoutSessionReturns401(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/me');
-
-        self::assertResponseStatusCodeSame(401);
-        $data = json_decode($client->getResponse()->getContent() ?: '', true);
-        self::assertIsArray($data);
-        self::assertSame('UNAUTHENTICATED', $data['code'] ?? null);
-    }
-
     public function testLoginWithInvalidCredentialsReturns401(): void
     {
         $client = static::createClient();
@@ -69,7 +58,7 @@ final class AuthenticationTest extends WebTestCase
         self::assertSame('EMAIL_NOT_VERIFIED', $data['code'] ?? null);
     }
 
-    public function testLoginSuccessReturnsUserAndSession(): void
+    public function testLoginSuccessReturnsTokensAndUser(): void
     {
         $client = static::createClient();
         $email = 'verified-'.uniqid('', true).'@example.com';
@@ -88,40 +77,100 @@ final class AuthenticationTest extends WebTestCase
         self::assertResponseIsSuccessful();
         $data = json_decode($client->getResponse()->getContent() ?: '', true);
         self::assertIsArray($data);
+        self::assertArrayHasKey('token', $data);
+        self::assertArrayHasKey('refresh_token', $data);
         self::assertArrayHasKey('user', $data);
         self::assertSame($email, $data['user']['email'] ?? null);
         self::assertArrayNotHasKey('password', $data['user']);
+    }
+
+    public function testRefreshTokenReturnsNewAccessTokenAndUser(): void
+    {
+        $client = static::createClient();
+        $email = 'refresh-'.uniqid('', true).'@example.com';
+        $this->loginAs($client, $email);
+
+        $client->request(
+            'POST',
+            '/api/token/refresh',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: '{}',
+        );
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode($client->getResponse()->getContent() ?: '', true);
+        self::assertIsArray($data);
+        self::assertArrayHasKey('token', $data);
+        self::assertArrayHasKey('user', $data);
+        self::assertSame($email, $data['user']['email'] ?? null);
+    }
+
+    public function testMeWithoutTokenReturns401(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/me');
+
+        self::assertResponseStatusCodeSame(401);
+        $data = json_decode($client->getResponse()->getContent() ?: '', true);
+        self::assertSame('UNAUTHENTICATED', $data['code'] ?? null);
     }
 
     public function testMeAfterLoginReturnsProfile(): void
     {
         $client = static::createClient();
         $email = 'me-'.uniqid('', true).'@example.com';
-        $this->loginAs($client, $email);
+        $tokens = $this->loginAs($client, $email);
 
-        $client->request('GET', '/api/me');
+        $client->request(
+            'GET',
+            '/api/me',
+            server: ['HTTP_AUTHORIZATION' => 'Bearer '.$tokens['token']],
+        );
 
         self::assertResponseIsSuccessful();
         $data = json_decode($client->getResponse()->getContent() ?: '', true);
         self::assertSame($email, $data['user']['email'] ?? null);
         self::assertArrayHasKey('credits', $data['user']);
         self::assertArrayHasKey('roles', $data['user']);
+        self::assertArrayHasKey('profileType', $data['user']);
     }
 
-    public function testLogoutInvalidatesSession(): void
+    public function testProtectedRouteRequiresBearerToken(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/api/me/vehicles');
+
+        self::assertResponseStatusCodeSame(401);
+    }
+
+    public function testLogoutRevokesRefreshToken(): void
     {
         $client = static::createClient();
         $email = 'logout-'.uniqid('', true).'@example.com';
         $this->loginAs($client, $email);
 
-        $client->request('POST', '/api/logout');
+        $client->request(
+            'POST',
+            '/api/logout',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: '{}',
+        );
         self::assertResponseIsSuccessful();
 
-        $client->request('GET', '/api/me');
+        $client->request(
+            'POST',
+            '/api/token/refresh',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: '{}',
+        );
+
         self::assertResponseStatusCodeSame(401);
     }
 
-    private function loginAs(KernelBrowser $client, string $email): void
+    /**
+     * @return array{token: string, user: array<string, mixed>}
+     */
+    private function loginAs(KernelBrowser $client, string $email): array
     {
         $this->createVerifiedUser($client, $email);
 
@@ -136,6 +185,10 @@ final class AuthenticationTest extends WebTestCase
         );
 
         self::assertResponseIsSuccessful();
+        $data = json_decode($client->getResponse()->getContent() ?: '', true);
+        self::assertIsArray($data);
+
+        return $data;
     }
 
     private function createVerifiedUser(KernelBrowser $client, string $email): User

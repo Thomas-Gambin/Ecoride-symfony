@@ -18,6 +18,7 @@ final readonly class UserProfileDto
         public array $roles,
         public int $credits,
         public bool $isVerified,
+        public string $profileType,
     ) {
     }
 
@@ -30,6 +31,7 @@ final readonly class UserProfileDto
             roles: $user->getRoles(),
             credits: $user->getCredits(),
             isVerified: $user->isVerified(),
+            profileType: $user->getProfileType()->value,
         );
     }
 
@@ -45,6 +47,7 @@ final readonly class UserProfileDto
             'roles' => $this->roles,
             'credits' => $this->credits,
             'isVerified' => $this->isVerified,
+            'profileType' => $this->profileType,
         ];
     }
 }
