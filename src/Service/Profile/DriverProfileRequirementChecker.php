@@ -7,6 +7,7 @@ namespace App\Service\Profile;
 use App\Entity\Car;
 use App\Entity\DriverPreference;
 use App\Entity\User;
+use App\Enum\CarEnergy;
 use App\Repository\CarRepository;
 use App\Repository\DriverPreferenceRepository;
 
@@ -54,6 +55,8 @@ final class DriverProfileRequirementChecker
 
     private function isVehicleValid(Car $car): bool
     {
+        $energy = $car->getEnergy();
+
         return $car->getRegistrationNumber() !== null
             && $car->getRegistrationNumber() !== ''
             && $car->getFirstRegistrationDate() !== null
@@ -62,8 +65,8 @@ final class DriverProfileRequirementChecker
             && $car->getModel() !== ''
             && $car->getColor() !== null
             && $car->getColor() !== ''
-            && $car->getEnergy() !== null
-            && $car->getEnergy() !== ''
-            && $car->getSeatsAvailable() >= 1;
+            && $energy !== null
+            && $energy !== ''
+            && CarEnergy::tryFrom($energy) !== null;
     }
 }

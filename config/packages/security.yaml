@@ -34,6 +34,9 @@ security:
         - { path: ^/api/resend-verification-email, roles: PUBLIC_ACCESS }
         - { path: ^/api/logout, roles: PUBLIC_ACCESS }
         - { path: ^/api/me, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/profile, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/vehicles, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/preferences, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api/employee, roles: ROLE_EMPLOYEE }
         - { path: ^/api/user, roles: ROLE_USER }

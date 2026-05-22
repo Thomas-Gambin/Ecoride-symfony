@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CarRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_CAR_REGISTRATION_NUMBER', fields: ['registrationNumber'])]
 class Car
 {
     #[ORM\Id]
@@ -125,6 +126,16 @@ class Car
         $this->relation = $relation;
 
         return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->getRelation();
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        return $this->setRelation($owner);
     }
 
     public function getBrand(): ?Brand

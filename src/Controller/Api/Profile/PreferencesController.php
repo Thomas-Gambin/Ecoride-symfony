@@ -22,7 +22,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
-final class MePreferencesController
+final class PreferencesController
 {
     public function __construct(
         private readonly Security $security,
@@ -32,7 +32,7 @@ final class MePreferencesController
     ) {
     }
 
-    #[Route('/api/me/preferences', name: 'api_me_preferences_get', methods: ['GET'])]
+    #[Route('/api/preferences', name: 'api_preferences_get', methods: ['GET'])]
     public function get(): JsonResponse
     {
         $user = $this->currentUser();
@@ -45,8 +45,8 @@ final class MePreferencesController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/me/preferences', name: 'api_me_preferences_update', methods: ['PUT'])]
-    public function update(#[MapRequestPayload] UpdateDriverPreferencePayload $payload): JsonResponse
+    #[Route('/api/preferences/standard', name: 'api_preferences_standard_update', methods: ['PUT'])]
+    public function updateStandard(#[MapRequestPayload] UpdateDriverPreferencePayload $payload): JsonResponse
     {
         $user = $this->currentUser();
         if (!$user instanceof User) {
@@ -66,7 +66,7 @@ final class MePreferencesController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/me/preferences/custom', name: 'api_me_preferences_custom_create', methods: ['POST'])]
+    #[Route('/api/preferences/custom', name: 'api_preferences_custom_create', methods: ['POST'])]
     public function createCustom(#[MapRequestPayload] CreateCustomPreferencePayload $payload): JsonResponse
     {
         $user = $this->currentUser();
@@ -98,7 +98,7 @@ final class MePreferencesController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/api/me/preferences/custom/{id<\d+>}', name: 'api_me_preferences_custom_delete', methods: ['DELETE'])]
+    #[Route('/api/preferences/custom/{id<\d+>}', name: 'api_preferences_custom_delete', methods: ['DELETE'])]
     public function deleteCustom(int $id): JsonResponse
     {
         $user = $this->currentUser();

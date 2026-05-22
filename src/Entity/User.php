@@ -94,6 +94,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Car::class, mappedBy: 'relation')]
     private Collection $cars;
 
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: DriverPreference::class, cascade: ['persist', 'remove'])]
+    private ?DriverPreference $driverPreference = null;
+
     #[ORM\ManyToOne(inversedBy: 'users')]
     private ?Role $rolesRelation = null;
 
@@ -412,6 +415,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             if ($car->getRelation() === $this) {
                 $car->setRelation(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getDriverPreference(): ?DriverPreference
+    {
+        return $this->driverPreference;
+    }
+
+    public function setDriverPreference(?DriverPreference $driverPreference): static
+    {
+        if ($driverPreference === $this->driverPreference) {
+            return $this;
+        }
+
+        $this->driverPreference = $driverPreference;
+
+        if ($driverPreference !== null && $driverPreference->getUser() !== $this) {
+            $driverPreference->setUser($this);
         }
 
         return $this;

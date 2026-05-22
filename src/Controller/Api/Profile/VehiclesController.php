@@ -9,6 +9,7 @@ use App\Dto\Profile\UpsertCarPayload;
 use App\Entity\Brand;
 use App\Entity\Car;
 use App\Entity\User;
+use App\Enum\CarEnergy;
 use App\Repository\BrandRepository;
 use App\Repository\CarRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -21,7 +22,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
-final class MeVehiclesController
+final class VehiclesController
 {
     public function __construct(
         private readonly Security $security,
@@ -31,7 +32,7 @@ final class MeVehiclesController
     ) {
     }
 
-    #[Route('/api/me/vehicles', name: 'api_me_vehicles_list', methods: ['GET'])]
+    #[Route('/api/vehicles', name: 'api_vehicles_list', methods: ['GET'])]
     public function list(): JsonResponse
     {
         $user = $this->currentUser();
@@ -47,7 +48,7 @@ final class MeVehiclesController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/me/vehicles', name: 'api_me_vehicles_create', methods: ['POST'])]
+    #[Route('/api/vehicles', name: 'api_vehicles_create', methods: ['POST'])]
     public function create(#[MapRequestPayload] UpsertCarPayload $payload): JsonResponse
     {
         $user = $this->currentUser();
@@ -60,9 +61,14 @@ final class MeVehiclesController
             return $this->duplicateRegistrationResponse();
         }
 
+        $energyError = $this->resolveEnergy($payload->energy);
+        if ($energyError instanceof JsonResponse) {
+            return $energyError;
+        }
+
         $car = new Car();
         $car->setOwner($user);
-        $error = $this->fillCarFromPayload($car, $payload, $registrationNumber);
+        $error = $this->fillCarFromPayload($car, $payload, $registrationNumber, $energyError);
         if ($error instanceof JsonResponse) {
             return $error;
         }
@@ -81,7 +87,7 @@ final class MeVehiclesController
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/api/me/vehicles/{id<\d+>}', name: 'api_me_vehicles_update', methods: ['PATCH'])]
+    #[Route('/api/vehicles/{id<\d+>}', name: 'api_vehicles_update', methods: ['PUT'])]
     public function update(int $id, #[MapRequestPayload] UpsertCarPayload $payload): JsonResponse
     {
         $user = $this->currentUser();
@@ -100,7 +106,12 @@ final class MeVehiclesController
             return $this->duplicateRegistrationResponse();
         }
 
-        $error = $this->fillCarFromPayload($car, $payload, $registrationNumber);
+        $energyError = $this->resolveEnergy($payload->energy);
+        if ($energyError instanceof JsonResponse) {
+            return $energyError;
+        }
+
+        $error = $this->fillCarFromPayload($car, $payload, $registrationNumber, $energyError);
         if ($error instanceof JsonResponse) {
             return $error;
         }
@@ -117,7 +128,7 @@ final class MeVehiclesController
         ], Response::HTTP_OK);
     }
 
-    #[Route('/api/me/vehicles/{id<\d+>}', name: 'api_me_vehicles_delete', methods: ['DELETE'])]
+    #[Route('/api/vehicles/{id<\d+>}', name: 'api_vehicles_delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
         $user = $this->currentUser();
@@ -145,7 +156,7 @@ final class MeVehiclesController
         ], Response::HTTP_OK);
     }
 
-    private function fillCarFromPayload(Car $car, UpsertCarPayload $payload, string $registrationNumber): ?JsonResponse
+    private function fillCarFromPayload(Car $car, UpsertCarPayload $payload, string $registrationNumber, string $energy): ?JsonResponse
     {
         $firstRegistrationDate = new \DateTimeImmutable($payload->firstRegistrationDate);
         if ($firstRegistrationDate > new \DateTimeImmutable('today')) {
@@ -164,10 +175,27 @@ final class MeVehiclesController
             ->setBrand($this->resolveBrand($payload->brand))
             ->setModel(trim($payload->model))
             ->setColor(trim($payload->color))
-            ->setEnergy(trim($payload->energy))
-            ->setSeatsAvailable($payload->seatsAvailable);
+            ->setEnergy($energy);
 
         return null;
+    }
+
+    private function resolveEnergy(string $energy): string|JsonResponse
+    {
+        $normalized = CarEnergy::normalize($energy);
+        $resolved = CarEnergy::tryFrom($normalized);
+
+        if ($resolved === null) {
+            return new JsonResponse([
+                'code' => 'VALIDATION_ERROR',
+                'message' => 'Certains champs sont invalides.',
+                'fields' => [
+                    'energy' => 'L’énergie est invalide.',
+                ],
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return $resolved->value;
     }
 
     private function resolveBrand(string $label): Brand

@@ -138,7 +138,7 @@ final class AuthenticationTest extends WebTestCase
     public function testProtectedRouteRequiresBearerToken(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/api/me/vehicles');
+        $client->request('GET', '/api/vehicles');
 
         self::assertResponseStatusCodeSame(401);
     }

@@ -7,15 +7,15 @@ namespace App\ApiResource;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use App\Controller\Api\Profile\MePreferencesController;
-use App\Controller\Api\Profile\MeVehiclesController;
-use App\Controller\Api\Profile\ProfileTypeController;
+use App\Controller\Api\Profile\PreferencesController;
+use App\Controller\Api\Profile\ProfileController;
+use App\Controller\Api\Profile\ProfileRoleController;
+use App\Controller\Api\Profile\VehiclesController;
 use App\Dto\Profile\CreateCustomPreferencePayload;
 use App\Dto\Profile\UpdateDriverPreferencePayload;
-use App\Dto\Profile\UpdateProfileTypePayload;
+use App\Dto\Profile\UpdateProfileRolePayload;
 use App\Dto\Profile\UpsertCarPayload;
 
 /**
@@ -25,23 +25,33 @@ use App\Dto\Profile\UpsertCarPayload;
 #[ApiResource(
     shortName: 'Profile',
     operations: [
-        new Patch(
-            uriTemplate: '/me/profile-type',
-            name: 'api_me_profile_type_update_doc',
-            controller: ProfileTypeController::class,
+        new Get(
+            uriTemplate: '/profile',
+            name: 'api_profile_get_doc',
+            controller: ProfileController::class,
+            read: false,
+            write: false,
+            serialize: false,
+            description: 'Retourne le profil de l’utilisateur connecté.',
+            output: false,
+        ),
+        new Put(
+            uriTemplate: '/profile/role',
+            name: 'api_profile_role_update_doc',
+            controller: ProfileRoleController::class,
             read: false,
             deserialize: false,
             validate: false,
             write: false,
             serialize: false,
-            description: 'Met à jour le type métier du profil : passenger, driver ou passenger_driver.',
-            input: UpdateProfileTypePayload::class,
+            description: 'Met à jour le rôle métier : passenger, driver ou passenger_driver.',
+            input: UpdateProfileRolePayload::class,
             output: false,
         ),
         new Get(
-            uriTemplate: '/me/vehicles',
-            name: 'api_me_vehicles_list_doc',
-            controller: MeVehiclesController::class.'::list',
+            uriTemplate: '/vehicles',
+            name: 'api_vehicles_list_doc',
+            controller: VehiclesController::class.'::list',
             read: false,
             write: false,
             serialize: false,
@@ -49,9 +59,9 @@ use App\Dto\Profile\UpsertCarPayload;
             output: false,
         ),
         new Post(
-            uriTemplate: '/me/vehicles',
-            name: 'api_me_vehicles_create_doc',
-            controller: MeVehiclesController::class.'::create',
+            uriTemplate: '/vehicles',
+            name: 'api_vehicles_create_doc',
+            controller: VehiclesController::class.'::create',
             read: false,
             deserialize: false,
             validate: false,
@@ -61,10 +71,10 @@ use App\Dto\Profile\UpsertCarPayload;
             input: UpsertCarPayload::class,
             output: false,
         ),
-        new Patch(
-            uriTemplate: '/me/vehicles/{id}',
-            name: 'api_me_vehicles_update_doc',
-            controller: MeVehiclesController::class.'::update',
+        new Put(
+            uriTemplate: '/vehicles/{id}',
+            name: 'api_vehicles_update_doc',
+            controller: VehiclesController::class.'::update',
             read: false,
             deserialize: false,
             validate: false,
@@ -75,9 +85,9 @@ use App\Dto\Profile\UpsertCarPayload;
             output: false,
         ),
         new Delete(
-            uriTemplate: '/me/vehicles/{id}',
-            name: 'api_me_vehicles_delete_doc',
-            controller: MeVehiclesController::class.'::delete',
+            uriTemplate: '/vehicles/{id}',
+            name: 'api_vehicles_delete_doc',
+            controller: VehiclesController::class.'::delete',
             read: false,
             write: false,
             serialize: false,
@@ -85,9 +95,9 @@ use App\Dto\Profile\UpsertCarPayload;
             output: false,
         ),
         new Get(
-            uriTemplate: '/me/preferences',
-            name: 'api_me_preferences_get_doc',
-            controller: MePreferencesController::class.'::get',
+            uriTemplate: '/preferences',
+            name: 'api_preferences_get_doc',
+            controller: PreferencesController::class.'::get',
             read: false,
             write: false,
             serialize: false,
@@ -95,9 +105,9 @@ use App\Dto\Profile\UpsertCarPayload;
             output: false,
         ),
         new Put(
-            uriTemplate: '/me/preferences',
-            name: 'api_me_preferences_update_doc',
-            controller: MePreferencesController::class.'::update',
+            uriTemplate: '/preferences/standard',
+            name: 'api_preferences_standard_update_doc',
+            controller: PreferencesController::class.'::updateStandard',
             read: false,
             deserialize: false,
             validate: false,
@@ -108,9 +118,9 @@ use App\Dto\Profile\UpsertCarPayload;
             output: false,
         ),
         new Post(
-            uriTemplate: '/me/preferences/custom',
-            name: 'api_me_preferences_custom_create_doc',
-            controller: MePreferencesController::class.'::createCustom',
+            uriTemplate: '/preferences/custom',
+            name: 'api_preferences_custom_create_doc',
+            controller: PreferencesController::class.'::createCustom',
             read: false,
             deserialize: false,
             validate: false,
@@ -121,9 +131,9 @@ use App\Dto\Profile\UpsertCarPayload;
             output: false,
         ),
         new Delete(
-            uriTemplate: '/me/preferences/custom/{id}',
-            name: 'api_me_preferences_custom_delete_doc',
-            controller: MePreferencesController::class.'::deleteCustom',
+            uriTemplate: '/preferences/custom/{id}',
+            name: 'api_preferences_custom_delete_doc',
+            controller: PreferencesController::class.'::deleteCustom',
             read: false,
             write: false,
             serialize: false,

@@ -22,7 +22,6 @@ final readonly class CarDto
             'model' => $car->getModel(),
             'color' => $car->getColor(),
             'energy' => $car->getEnergy(),
-            'seatsAvailable' => $car->getSeatsAvailable(),
         ];
     }
 }
