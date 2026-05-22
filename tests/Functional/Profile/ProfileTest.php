@@ -21,25 +21,25 @@ final class ProfileTest extends WebTestCase
 
     private ?string $accessToken = null;
 
-    public function testMeReturnsProfileType(): void
+    public function testProfileReturnsProfileType(): void
     {
         $client = static::createClient();
         $this->loginAs($client, 'profile-me-'.uniqid('', true).'@example.com');
 
-        $this->request($client, 'GET', '/api/me');
+        $this->request($client, 'GET', '/api/profile');
 
         self::assertResponseIsSuccessful();
         $data = $this->json($client);
         self::assertSame('passenger', $data['user']['profileType'] ?? null);
     }
 
-    public function testPassengerProfileTypeCanBeSaved(): void
+    public function testPassengerProfileRoleCanBeSaved(): void
     {
         $client = static::createClient();
         $this->loginAs($client, 'profile-passenger-'.uniqid('', true).'@example.com');
 
-        $this->jsonRequest($client, 'PATCH', '/api/me/profile-type', [
-            'profileType' => 'passenger',
+        $this->jsonRequest($client, 'PUT', '/api/profile/role', [
+            'role' => 'passenger',
         ]);
 
         self::assertResponseIsSuccessful();
@@ -47,13 +47,13 @@ final class ProfileTest extends WebTestCase
         self::assertSame('passenger', $data['user']['profileType'] ?? null);
     }
 
-    public function testDriverProfileTypeRequiresCompletedDriverProfile(): void
+    public function testDriverProfileRoleRequiresCompletedDriverProfile(): void
     {
         $client = static::createClient();
         $this->loginAs($client, 'profile-driver-missing-'.uniqid('', true).'@example.com');
 
-        $this->jsonRequest($client, 'PATCH', '/api/me/profile-type', [
-            'profileType' => 'driver',
+        $this->jsonRequest($client, 'PUT', '/api/profile/role', [
+            'role' => 'driver',
         ]);
 
         self::assertResponseStatusCodeSame(422);
@@ -70,43 +70,63 @@ final class ProfileTest extends WebTestCase
 
         $registrationNumber = $this->uniqueRegistrationNumber();
 
-        $this->jsonRequest($client, 'POST', '/api/me/vehicles', $this->validVehiclePayload($registrationNumber));
+        $this->jsonRequest($client, 'POST', '/api/vehicles', $this->validVehiclePayload($registrationNumber));
         self::assertResponseStatusCodeSame(201);
         $vehicleData = $this->json($client);
         $vehicleId = $vehicleData['vehicle']['id'] ?? null;
         self::assertIsInt($vehicleId);
-        self::assertSame(3, $vehicleData['vehicle']['seatsAvailable'] ?? null);
+        self::assertSame('electrique', $vehicleData['vehicle']['energy'] ?? null);
 
-        $this->jsonRequest($client, 'PATCH', '/api/me/vehicles/'.$vehicleId, [
+        $this->jsonRequest($client, 'PUT', '/api/vehicles/'.$vehicleId, [
             ...$this->validVehiclePayload($registrationNumber),
             'color' => 'Bleu',
-            'seatsAvailable' => 4,
         ]);
         self::assertResponseIsSuccessful();
         $updatedVehicleData = $this->json($client);
         self::assertSame('Bleu', $updatedVehicleData['vehicle']['color'] ?? null);
-        self::assertSame(4, $updatedVehicleData['vehicle']['seatsAvailable'] ?? null);
 
-        $this->jsonRequest($client, 'PUT', '/api/me/preferences', [
+        $this->jsonRequest($client, 'PUT', '/api/preferences/standard', [
             'allowSmoking' => false,
             'allowAnimals' => true,
         ]);
         self::assertResponseIsSuccessful();
 
-        $this->jsonRequest($client, 'PATCH', '/api/me/profile-type', [
-            'profileType' => 'driver',
+        $this->jsonRequest($client, 'PUT', '/api/profile/role', [
+            'role' => 'driver',
         ]);
         self::assertResponseIsSuccessful();
         $profileData = $this->json($client);
         self::assertSame('driver', $profileData['user']['profileType'] ?? null);
 
-        $this->request($client, 'DELETE', '/api/me/vehicles/'.$vehicleId);
+        $this->request($client, 'DELETE', '/api/vehicles/'.$vehicleId);
         self::assertResponseIsSuccessful();
 
-        $this->request($client, 'GET', '/api/me/vehicles');
+        $this->request($client, 'GET', '/api/vehicles');
         self::assertResponseIsSuccessful();
         $vehicles = $this->json($client);
         self::assertSame([], $vehicles['vehicles'] ?? null);
+    }
+
+    public function testPassengerDriverProfileRoleCanBeSaved(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'profile-passenger-driver-'.uniqid('', true).'@example.com');
+
+        $this->jsonRequest($client, 'POST', '/api/vehicles', $this->validVehiclePayload($this->uniqueRegistrationNumber()));
+        self::assertResponseStatusCodeSame(201);
+
+        $this->jsonRequest($client, 'PUT', '/api/preferences/standard', [
+            'allowSmoking' => false,
+            'allowAnimals' => false,
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $this->jsonRequest($client, 'PUT', '/api/profile/role', [
+            'role' => 'passenger_driver',
+        ]);
+        self::assertResponseIsSuccessful();
+        $data = $this->json($client);
+        self::assertSame('passenger_driver', $data['user']['profileType'] ?? null);
     }
 
     public function testInvalidVehicleIsRejected(): void
@@ -114,9 +134,9 @@ final class ProfileTest extends WebTestCase
         $client = static::createClient();
         $this->loginAs($client, 'profile-invalid-vehicle-'.uniqid('', true).'@example.com');
 
-        $this->jsonRequest($client, 'POST', '/api/me/vehicles', [
+        $this->jsonRequest($client, 'POST', '/api/vehicles', [
             ...$this->validVehiclePayload($this->uniqueRegistrationNumber()),
-            'seatsAvailable' => 0,
+            'energy' => 'gpl',
         ]);
 
         self::assertResponseStatusCodeSame(422);
@@ -132,7 +152,7 @@ final class ProfileTest extends WebTestCase
 
         $this->loginAs($client, 'profile-other-'.uniqid('', true).'@example.com');
 
-        $this->jsonRequest($client, 'PATCH', '/api/me/vehicles/'.(int) $vehicle->getId(), $this->validVehiclePayload($this->uniqueRegistrationNumber()));
+        $this->jsonRequest($client, 'PUT', '/api/vehicles/'.(int) $vehicle->getId(), $this->validVehiclePayload($this->uniqueRegistrationNumber()));
 
         self::assertResponseStatusCodeSame(404);
     }
@@ -142,7 +162,7 @@ final class ProfileTest extends WebTestCase
         $client = static::createClient();
         $this->loginAs($client, 'profile-preferences-'.uniqid('', true).'@example.com');
 
-        $this->jsonRequest($client, 'PUT', '/api/me/preferences', [
+        $this->jsonRequest($client, 'PUT', '/api/preferences/standard', [
             'allowSmoking' => true,
             'allowAnimals' => false,
         ]);
@@ -151,7 +171,7 @@ final class ProfileTest extends WebTestCase
         self::assertTrue($preferences['preferences']['allowSmoking'] ?? false);
         self::assertFalse($preferences['preferences']['allowAnimals'] ?? true);
 
-        $this->jsonRequest($client, 'POST', '/api/me/preferences/custom', [
+        $this->jsonRequest($client, 'POST', '/api/preferences/custom', [
             'label' => 'Musique calme uniquement',
         ]);
         self::assertResponseStatusCodeSame(201);
@@ -159,12 +179,12 @@ final class ProfileTest extends WebTestCase
         $customId = $custom['customPreference']['id'] ?? null;
         self::assertIsInt($customId);
 
-        $this->jsonRequest($client, 'POST', '/api/me/preferences/custom', [
+        $this->jsonRequest($client, 'POST', '/api/preferences/custom', [
             'label' => 'musique calme uniquement',
         ]);
         self::assertResponseStatusCodeSame(409);
 
-        $this->request($client, 'DELETE', '/api/me/preferences/custom/'.$customId);
+        $this->request($client, 'DELETE', '/api/preferences/custom/'.$customId);
         self::assertResponseIsSuccessful();
     }
 
@@ -179,8 +199,7 @@ final class ProfileTest extends WebTestCase
             'brand' => 'Renault',
             'model' => 'Zoé',
             'color' => 'Vert',
-            'energy' => 'Électrique',
-            'seatsAvailable' => 3,
+            'energy' => 'électrique',
         ];
     }
 
@@ -290,8 +309,7 @@ final class ProfileTest extends WebTestCase
             ->setFirstRegistrationDate(new \DateTime('2021-03-10'))
             ->setModel('208')
             ->setColor('Noir')
-            ->setEnergy('Essence')
-            ->setSeatsAvailable(2);
+            ->setEnergy('essence');
 
         $em->persist($brand);
         $em->persist($car);

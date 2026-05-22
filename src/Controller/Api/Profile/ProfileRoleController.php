@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Api\Profile;
 
 use App\Dto\Auth\UserProfileDto;
-use App\Dto\Profile\UpdateProfileTypePayload;
+use App\Dto\Profile\UpdateProfileRolePayload;
 use App\Entity\User;
 use App\Enum\UserProfileType;
 use App\Service\Profile\DriverProfileRequirementChecker;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[AsController]
-final class ProfileTypeController
+final class ProfileRoleController
 {
     public function __construct(
         private readonly Security $security,
@@ -27,15 +27,15 @@ final class ProfileTypeController
     ) {
     }
 
-    #[Route('/api/me/profile-type', name: 'api_me_profile_type_update', methods: ['PATCH'])]
-    public function __invoke(#[MapRequestPayload] UpdateProfileTypePayload $payload): JsonResponse
+    #[Route('/api/profile/role', name: 'api_profile_role_update', methods: ['PUT'])]
+    public function __invoke(#[MapRequestPayload] UpdateProfileRolePayload $payload): JsonResponse
     {
         $user = $this->security->getUser();
         if (!$user instanceof User) {
             return $this->unauthenticated();
         }
 
-        $profileType = UserProfileType::from($payload->profileType);
+        $profileType = UserProfileType::from($payload->role);
 
         if ($profileType->requiresDriverProfile()) {
             $missingRequirements = $this->requirementChecker->getMissingRequirements($user);
@@ -52,7 +52,7 @@ final class ProfileTypeController
         $this->entityManager->flush();
 
         return new JsonResponse([
-            'message' => 'Votre type de profil a été mis à jour.',
+            'message' => 'Votre rôle a été mis à jour.',
             'user' => UserProfileDto::fromUser($user)->toArray(),
         ], Response::HTTP_OK);
     }

@@ -33,10 +33,6 @@ final readonly class UpsertCarPayload
         #[Assert\NotBlank(message: 'L’énergie est obligatoire.')]
         #[Assert\Length(max: 50, maxMessage: 'L’énergie ne peut pas dépasser {{ limit }} caractères.')]
         public string $energy,
-
-        #[Assert\NotNull(message: 'Le nombre de places est obligatoire.')]
-        #[Assert\Positive(message: 'Le nombre de places doit être supérieur ou égal à 1.')]
-        public int $seatsAvailable,
     ) {
     }
 }
