@@ -1,0 +1,1 @@
+<?php header("Content-Type: application/json"); require "vendor/autoload_runtime.php"; return function() { return new Symfony\Component\HttpFoundation\JsonResponse(["auth" => $_SERVER["HTTP_AUTHORIZATION"] ?? null]); };

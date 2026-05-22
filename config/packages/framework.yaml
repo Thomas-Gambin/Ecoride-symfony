@@ -16,9 +16,20 @@ when@dev:
             - x-forwarded-proto
             - x-forwarded-port
             - x-forwarded-host
+        session:
+            cookie_secure: false
+            cookie_httponly: true
+            cookie_samesite: lax
 
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+
+when@prod:
+    framework:
+        session:
+            cookie_secure: auto
+            cookie_httponly: true
+            cookie_samesite: lax

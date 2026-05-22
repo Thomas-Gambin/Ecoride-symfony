@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\UserProfileType;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -79,6 +80,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $username = null;
+
+    #[ORM\Column(length: 32, enumType: UserProfileType::class, options: ['default' => 'passenger'])]
+    private UserProfileType $profileType = UserProfileType::Passenger;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: true)]
@@ -355,6 +359,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUsername(string $username): static
     {
         $this->username = $username;
+
+        return $this;
+    }
+
+    public function getProfileType(): UserProfileType
+    {
+        return $this->profileType;
+    }
+
+    public function setProfileType(UserProfileType $profileType): static
+    {
+        $this->profileType = $profileType;
 
         return $this;
     }

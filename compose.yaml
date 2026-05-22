@@ -45,6 +45,8 @@ services:
       MAILERSEND_API_KEY: ${MAILERSEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-}
       MAIL_TO: ${MAIL_TO:-}
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      USE_MAILPIT: ${USE_MAILPIT:-0}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       database:

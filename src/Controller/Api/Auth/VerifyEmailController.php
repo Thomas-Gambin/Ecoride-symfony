@@ -44,6 +44,12 @@ final class VerifyEmailController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        if ($user->isVerified()) {
+            return new JsonResponse([
+                'message' => 'Votre adresse email est confirmée. Vous pouvez vous connecter.',
+            ], Response::HTTP_OK);
+        }
+
         $expiresAt = $user->getEmailVerificationTokenExpiresAt();
         if (null === $expiresAt || $expiresAt < new \DateTimeImmutable()) {
             return new JsonResponse([
@@ -54,8 +60,6 @@ final class VerifyEmailController
 
         $user->setIsVerified(true);
         $user->setVerifiedAt(new \DateTimeImmutable());
-        $user->setEmailVerificationToken(null);
-        $user->setEmailVerificationTokenExpiresAt(null);
         $this->entityManager->flush();
 
         return new JsonResponse([
