@@ -36,6 +36,7 @@ security:
         - { path: ^/api/me, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/profile, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/vehicles, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/carpools, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/preferences, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api/employee, roles: ROLE_EMPLOYEE }
