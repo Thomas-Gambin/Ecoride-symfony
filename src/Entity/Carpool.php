@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\CarpoolStatus;
 use App\Repository\CarpoolRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -9,8 +10,11 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CarpoolRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class Carpool
 {
+    public const PLATFORM_FEE_CREDITS = 2;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -25,20 +29,44 @@ class Carpool
     #[ORM\Column(length: 50)]
     private ?string $departureLocation = null;
 
+    #[ORM\Column(length: 5)]
+    private ?string $departureCityCode = null;
+
+    #[ORM\Column(length: 10)]
+    private ?string $departurePostalCode = null;
+
     #[ORM\Column]
     private ?\DateTime $arrivalDate = null;
+
+    #[ORM\Column]
+    private ?\DateTime $arrivalTime = null;
 
     #[ORM\Column(length: 50)]
     private ?string $arrivalLocation = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $status = null;
+    #[ORM\Column(length: 5)]
+    private ?string $arrivalCityCode = null;
+
+    #[ORM\Column(length: 10)]
+    private ?string $arrivalPostalCode = null;
+
+    #[ORM\Column(length: 50, enumType: CarpoolStatus::class)]
+    private CarpoolStatus $status = CarpoolStatus::Open;
 
     #[ORM\Column]
     private ?int $seatCount = null;
 
     #[ORM\Column]
     private ?float $pricePerPerson = null;
+
+    #[ORM\Column(options: ['default' => self::PLATFORM_FEE_CREDITS])]
+    private int $platformFeeCredits = self::PLATFORM_FEE_CREDITS;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'carpools')]
     #[ORM\JoinColumn(nullable: false)]
@@ -53,6 +81,14 @@ class Carpool
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->platformFeeCredits = self::PLATFORM_FEE_CREDITS;
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function touchUpdatedAt(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -96,6 +132,30 @@ class Carpool
         return $this;
     }
 
+    public function getDepartureCityCode(): ?string
+    {
+        return $this->departureCityCode;
+    }
+
+    public function setDepartureCityCode(string $departureCityCode): static
+    {
+        $this->departureCityCode = $departureCityCode;
+
+        return $this;
+    }
+
+    public function getDeparturePostalCode(): ?string
+    {
+        return $this->departurePostalCode;
+    }
+
+    public function setDeparturePostalCode(string $departurePostalCode): static
+    {
+        $this->departurePostalCode = $departurePostalCode;
+
+        return $this;
+    }
+
     public function getArrivalDate(): ?\DateTime
     {
         return $this->arrivalDate;
@@ -104,6 +164,18 @@ class Carpool
     public function setArrivalDate(\DateTime $arrivalDate): static
     {
         $this->arrivalDate = $arrivalDate;
+
+        return $this;
+    }
+
+    public function getArrivalTime(): ?\DateTime
+    {
+        return $this->arrivalTime;
+    }
+
+    public function setArrivalTime(\DateTime $arrivalTime): static
+    {
+        $this->arrivalTime = $arrivalTime;
 
         return $this;
     }
@@ -120,12 +192,36 @@ class Carpool
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getArrivalCityCode(): ?string
+    {
+        return $this->arrivalCityCode;
+    }
+
+    public function setArrivalCityCode(string $arrivalCityCode): static
+    {
+        $this->arrivalCityCode = $arrivalCityCode;
+
+        return $this;
+    }
+
+    public function getArrivalPostalCode(): ?string
+    {
+        return $this->arrivalPostalCode;
+    }
+
+    public function setArrivalPostalCode(string $arrivalPostalCode): static
+    {
+        $this->arrivalPostalCode = $arrivalPostalCode;
+
+        return $this;
+    }
+
+    public function getStatus(): CarpoolStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(CarpoolStatus $status): static
     {
         $this->status = $status;
 
@@ -154,6 +250,28 @@ class Carpool
         $this->pricePerPerson = $pricePerPerson;
 
         return $this;
+    }
+
+    public function getPlatformFeeCredits(): int
+    {
+        return $this->platformFeeCredits;
+    }
+
+    public function setPlatformFeeCredits(int $platformFeeCredits): static
+    {
+        $this->platformFeeCredits = $platformFeeCredits;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 
     public function getCar(): ?Car

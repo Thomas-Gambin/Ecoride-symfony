@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Carpool;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +17,30 @@ class CarpoolRepository extends ServiceEntityRepository
         parent::__construct($registry, Carpool::class);
     }
 
-    //    /**
-    //     * @return Carpool[] Returns an array of Carpool objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * @return list<Carpool>
+     */
+    public function findByDriver(User $user): array
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.car', 'car')
+            ->andWhere('car.relation = :user')
+            ->setParameter('user', $user)
+            ->orderBy('c.departureDate', 'DESC')
+            ->addOrderBy('c.departureTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-    //    public function findOneBySomeField($value): ?Carpool
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findOneOwnedByDriver(int $id, User $user): ?Carpool
+    {
+        return $this->createQueryBuilder('c')
+            ->innerJoin('c.car', 'car')
+            ->andWhere('c.id = :id')
+            ->andWhere('car.relation = :user')
+            ->setParameter('id', $id)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
